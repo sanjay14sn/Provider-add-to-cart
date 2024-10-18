@@ -37,5 +37,11 @@ class DBHelper {
     return cart ;
   }
 
+  Future<List<Cart>> getCartList() async {
+    var dbClient = await db;
+    final List<Map<String, Object?>> queryResult = await dbClient!.query('cart');
+    return queryResult.map((e) => Cart.fromMap(e)).toList();
+  }
+
 
 }

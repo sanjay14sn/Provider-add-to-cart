@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:untitled8/cart_model.dart';
 import 'package:untitled8/cart_provider.dart';
+import 'package:untitled8/cart_screen.dart';
 import 'package:untitled8/db_helper.dart';
 import 'package:badges/badges.dart' as badges ;
 
@@ -34,27 +35,44 @@ class _ProductListScreenState extends State<ProductListScreen> {
   Widget build(BuildContext context) {
     final cart = Provider.of<CartProvider>(context);
     return Scaffold(
-      appBar: AppBar(
+      appBar:  AppBar(
         title: const Text('Product List'),
         centerTitle: true,
         actions: [
-          Center(
-            child: badges.Badge(
-              badgeContent: Consumer<CartProvider>(builder:(context,value,child){
-                return Text(value.getCounter().toString(),style:TextStyle(color:Colors.white),);
-              },
+          SizedBox(
+            child: Center(
+              child: badges.Badge(
+                position:badges.BadgePosition.topEnd(top: 0, end: 20),
+                badgeContent: Consumer<CartProvider>(
+                  builder: (context, value, child) {
+                    return Text(
+                      value.getCounter().toString(),
+                      style: const TextStyle(color: Colors.white),
+                    );
+                  },
+                ),
+                badgeAnimation: badges.BadgeAnimation.slide(
+                  animationDuration: const Duration(milliseconds: 200),
+                ),
+                badgeStyle:badges.BadgeStyle(
+                  padding:EdgeInsets.all(6),
+
+                ),
+                child: SizedBox(
+                  width:100,
+                  child: IconButton(
+                    icon: const Icon(Icons.shopping_bag),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => CartScreen()),
+                      );
+                    },
                   ),
-              badgeAnimation:badges.BadgeAnimation.slide(
-              animationDuration:Duration(milliseconds:200)),
-              child: IconButton(
-                icon: const Icon(Icons.shopping_bag),
-                onPressed: () {
-                  // Action for the shopping cart button
-                },
+                ),
               ),
             ),
           ),
-          const SizedBox(width: 20.0),
         ],
       ),
       body: Column(
