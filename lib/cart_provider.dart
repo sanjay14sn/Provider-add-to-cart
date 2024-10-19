@@ -3,71 +3,96 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:untitled8/db_helper.dart';
 import 'cart_model.dart';
 
-class CartProvider with ChangeNotifier{
-
+class CartProvider with ChangeNotifier {
   DBHelper db = DBHelper();
 
   int _counter = 0;
   int get counter => _counter;
 
-  double _totalPrice =0.0;
+  double _totalPrice = 0.0;
   double get totalPrice => _totalPrice;
 
-  late Future<List<Cart>> _cart ;
+  late Future<List<Cart>> _cart;
   Future<List<Cart>> get cart => _cart;
 
-  Future<List<Cart>> getData () async {
+  CartProvider() {
+    _getPrefItems();
     _cart = db.getCartList();
-    return _cart ;
+    print("CartProvider initialized: counter=$_counter");
   }
 
-  void _setPrefItems()async{
+  Future<List<Cart>> getData() async {
+    _cart = db.getCartList();
+    return _cart;
+  }
+
+  void _setPrefItems() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setInt('cart_item', _counter);
-    prefs.setDouble('totalPrice', _totalPrice);
-    notifyListeners();
-
+    prefs.setDouble('total_price', _totalPrice);
+    print("Preferences set: counter=$_counter, totalPrice=$_totalPrice");
   }
-  void _getPrefItems()async{
+
+  void _getPrefItems() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     _counter = prefs.getInt('cart_item') ?? 0;
     _totalPrice = prefs.getDouble('total_price') ?? 0.0;
-    notifyListeners();
 
+    if (_counter < 0) {
+      _counter = 0;
+      _setPrefItems(); // Reset preferences if needed
+    }
+
+    if (_totalPrice < 0) {
+      _totalPrice = 0.0;
+      _setPrefItems();
+    }
+    notifyListeners();
+    print("Preferences fetched: counter=$_counter, totalPrice=$_totalPrice");
   }
-  void addTotalPrice (double productPrice){
-    _totalPrice = _totalPrice +productPrice ;
+
+  void addTotalPrice(double productPrice) {
+    _totalPrice += productPrice;
+    if (_totalPrice < 0) {
+      _totalPrice = 0.0;
+    }
     _setPrefItems();
     notifyListeners();
   }
 
-  void removeTotalPrice (double productPrice){
-    _totalPrice = _totalPrice  - productPrice ;
+  void removeTotalPrice(double productPrice) {
+    _totalPrice -= productPrice;
+    if (_totalPrice < 0) {
+      _totalPrice = 0.0;
+    }
     _setPrefItems();
     notifyListeners();
   }
 
-  double getTotalPrice (){
-    _getPrefItems();
-    return  _totalPrice ;
+  double getTotalPrice() {
+    return _totalPrice;
   }
 
-
-  void addCounter (){
+  void addCounter() {
     _counter++;
+    if (_counter < 0) {
+      _counter = 0;
+    }
     _setPrefItems();
     notifyListeners();
   }
 
-  void removerCounter (){
+  void removeCounter() {
     _counter--;
+    if (_counter < 0) {
+      _counter = 0;
+    }
     _setPrefItems();
     notifyListeners();
   }
 
-  int getCounter (){
-    _getPrefItems();
-    return  _counter ;
-
+  int getCounter() {
+    print("getCounter called: counter=$_counter");
+    return _counter;
   }
 }

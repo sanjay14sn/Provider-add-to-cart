@@ -36,13 +36,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
     final cart = Provider.of<CartProvider>(context);
     return Scaffold(
       appBar:  AppBar(
+        backgroundColor: Colors.blue[200],
         title: const Text('Product List'),
         centerTitle: true,
         actions: [
           SizedBox(
             child: Center(
               child: badges.Badge(
-                position:badges.BadgePosition.topEnd(top: 0, end: 20),
+                position: badges.BadgePosition.topEnd(top: 0, end: 20),
                 badgeContent: Consumer<CartProvider>(
                   builder: (context, value, child) {
                     return Text(
@@ -54,12 +55,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 badgeAnimation: badges.BadgeAnimation.slide(
                   animationDuration: const Duration(milliseconds: 200),
                 ),
-                badgeStyle:badges.BadgeStyle(
-                  padding:EdgeInsets.all(6),
-
+                badgeStyle: badges.BadgeStyle(
+                  padding: EdgeInsets.all(6),
                 ),
                 child: SizedBox(
-                  width:100,
+                  width: 100,
                   child: IconButton(
                     icon: const Icon(Icons.shopping_bag),
                     onPressed: () {
@@ -92,7 +92,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           width: 100,
                           image: AssetImage(productImage[index]),
                         ),
-                        const SizedBox(width: 10), // Add space between image and text
+                        const SizedBox(width: 10),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -110,14 +110,27 @@ class _ProductListScreenState extends State<ProductListScreen> {
                             ],
                           ),
                         ),
-                        //Spacer(), // This will push the button to the right
                         Align(
                           alignment: Alignment.centerRight,
                           child: InkWell(
-                            onTap: () {
-                              dbHelper!
-                                  .insert(
-                                Cart(
+                            onTap: () async {
+                              print("Add to Cart tapped");
+                              List<Cart> cartItems = await cart.getData();
+                              print("Fetched Cart Items: ${cartItems.length}");
+
+                              bool alreadyInCart = cartItems.any((item) => item.productId == productImage[index]);
+                              print("Already in Cart: $alreadyInCart"); // Log statement
+
+                              if (alreadyInCart) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text("Already in Cart"),
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
+                              } else {
+                                await dbHelper!.insert(
+                                  Cart(
                                     id: index,
                                     productId: index.toString(),
                                     productName: productName[index],
@@ -125,22 +138,21 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                     productPrice: productPrice[index],
                                     quantity: 1,
                                     unitTag: productUnit[index],
-                                    image: productImage[index]
-                                ),
-                              )
-                                  .then((value) {
-                                    print("Product Added to Cart");
-                                    cart.addTotalPrice(double.parse(productPrice[index].toString()));
-                                    cart.addCounter();
+                                    image: productImage[index],
+                                  ),
+                                );
 
-                                
-                                
-                              })
-                                  .catchError((error) {
-                                print(error.toString());
-                              });
-                              },
-                          child: Container(
+                                cart.addTotalPrice(productPrice[index].toDouble());
+                                cart.addCounter();
+
+                                print("Product Added to Cart");
+                              }
+                            },
+
+
+
+
+                            child: Container(
                             height: 35,
                             width: 100,
                             decoration: BoxDecoration(
@@ -163,8 +175,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
               },
             ),
           ),
+
+
         ],
       ),
     );
   }
 }
+
+
